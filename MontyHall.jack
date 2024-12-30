@@ -1,0 +1,153 @@
+class MontyHall {
+    field Array doors;     // 0 = goat, 1 = car
+    field int carPosition; 
+    field int doorWidth;   
+    field int doorHeight;  
+    field int money;       
+    field int playerChoice;
+    field int revealedDoor;
+
+    constructor MontyHall new() {
+        let doors = Array.new(3);
+        let doors[0] = 0;
+        let doors[1] = 0;
+        let doors[2] = 0;
+        let doorWidth = 60;
+        let doorHeight = 80;
+        let money = 100;    
+        return this;
+    }
+
+    method void dispose() {
+        do doors.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void drawDoor(int x, int y) {
+        // Draw door frame
+        do Screen.drawRectangle(x, y, x + doorWidth, y + doorHeight);
+        // Draw door handle
+        do Screen.drawCircle(x + doorWidth - 10, y + (doorHeight / 2), 3);
+        // Add some detail lines for decoration
+        do Screen.drawLine(x + 5, y + 15, x + doorWidth - 5, y + 15);
+        do Screen.drawLine(x + 5, y + 30, x + doorWidth - 5, y + 30);
+        return;
+    }
+
+    method void drawDoors() {
+        var int baseX, baseY, i;
+        let baseY = 100;
+        let i = 0;
+
+        while (i < 3) {
+            let baseX = 100 + (i * (doorWidth + 20));
+            do drawDoor(baseX, baseY);
+            do Output.moveCursor(20, 10 + (i * 15));
+            do Output.printInt(i + 1);
+            let i = i + 1;
+        }
+        return;
+    }
+
+
+    method void showCar(int position) {
+        var int x, y;
+        let x = 100 + (position * (doorWidth + 20));
+        let y = 120; // Position where the door is
+        do Output.moveCursor(y / 8, x / 8);
+        do Output.printString("CAR");
+        return;
+    }
+
+    method void showGoat(int position) {
+        var int x, y;
+        let x = 100 + (position * (doorWidth + 20));
+        let y = 120; // Position where the door is
+        do Output.moveCursor(y / 8, x / 8);
+        do Output.printString("GOAT");
+        return;
+    }
+
+    method void initGame() {
+        var int startPos;
+
+        // Clear all doors
+        let doors[0] = 0;
+        let doors[1] = 0;
+        let doors[2] = 0;
+
+        // Get random starting position for car
+        let startPos = getRandom();
+
+        // Place the car
+        let carPosition = startPos;
+        let doors[carPosition] = 1;
+
+        // Draw initial state
+        do Screen.clearScreen();
+        do drawDoors();
+        return;
+    }
+
+    method int revealGoatDoor(int playerChoice) {
+        var int i;
+        let i = 0;
+
+        while (i < 3) {
+            if (~(i = playerChoice)) {
+                if ((doors[i] = 0)) {
+                    let revealedDoor = i;
+                    return i;
+                }                
+            }
+            let i = i + 1;
+        }
+        return -1;
+    }
+
+    method int getUnrevealedDoor(int playerChoice, int revealedDoor) {
+        var int i;
+        let i = 0;
+        while (i < 3) {
+            if (~(i = playerChoice) & ~(i = revealedDoor)) {
+                return i;
+            }
+            let i = i + 1;
+        }
+        return -1;
+    }
+
+    method int getRandom() {
+        var int randomNumber;
+        do Random.setSeed(Random.randRange(25)); 
+        let randomNumber = Random.randRange(2);
+        return randomNumber;
+    }
+
+    method boolean makeGuess(int guess) {
+        if (guess < 0) { return false; }
+        if (guess > 2) { return false; }
+        return (doors[guess] = 1);
+    }
+
+    method void animateDoorOpen(int position) {
+        var int x, y, i, width;
+        let x = 100 + (position * (doorWidth + 20));
+        let y = 100;
+        let width = 0;
+
+        while (width < doorWidth) {
+            do Screen.setColor(false);  // erase
+            do Screen.drawRectangle(x + width, y, x + width + 1, y + doorHeight);
+            let width = width + 2;
+            do Sys.wait(50);
+        }
+        return;
+    }
+
+    method void addWinnings() {
+        let money = money + 50;
+        return;
+    }
+}
