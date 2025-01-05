@@ -3,18 +3,29 @@ class MontyHall {
     field int carPosition; 
     field int doorWidth;   
     field int doorHeight;  
-    field int money;       
     field int playerChoice;
     field int revealedDoor;
+    field int gamesPlayed;
+    field int gamesWon;
+    // New statistics fields
+    field int switchAttempts;
+    field int switchWins;
+    field int stayAttempts;
+    field int stayWins;
 
     constructor MontyHall new() {
         let doors = Array.new(3);
         let doors[0] = 0;
         let doors[1] = 0;
         let doors[2] = 0;
-        let doorWidth = 60;
-        let doorHeight = 80;
-        let money = 100;    
+        let doorWidth = 100;    
+        let doorHeight = 140;   
+        let gamesPlayed = 0;
+        let gamesWon = 0;
+        let switchAttempts = 0;
+        let switchWins = 0;
+        let stayAttempts = 0;
+        let stayWins = 0;
         return this;
     }
 
@@ -24,48 +35,168 @@ class MontyHall {
         return;
     }
 
+    method void drawTitle() {
+        // Draw title box at the very top
+        do Screen.drawRectangle(156, 5, 356, 35);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(158, 7, 354, 33);
+        do Screen.setColor(true);
+        do Output.moveCursor(1, 20);
+        do Output.printString("MONTY HALL GAME");
+        return;
+    }
+
+    method void drawStats() {
+        // Draw stats box - made wider
+        do Screen.drawRectangle(332, 5, 502, 35);   
+        do Screen.setColor(false);
+        do Screen.drawRectangle(334, 7, 500, 33);
+        do Screen.setColor(true);
+        
+        // Win Rate - adjusted position
+        do Output.moveCursor(1, 43);
+        do Output.printString("Win Rate: ");
+        if (gamesPlayed > 0) {
+            do Output.printInt((gamesWon * 100) / gamesPlayed);
+            do Output.printString("%");
+        } else {
+            do Output.printString("0%");
+        }
+        return;
+    }
+
     method void drawDoor(int x, int y) {
-        // Draw door frame
+        // Enhanced door design with better 3D effect
+        // Main door frame with shadow
+        do Screen.drawRectangle(x-3, y-3, x + doorWidth+3, y + doorHeight+3);
+        do Screen.setColor(false);
         do Screen.drawRectangle(x, y, x + doorWidth, y + doorHeight);
-        // Draw door handle
-        do Screen.drawCircle(x + doorWidth - 10, y + (doorHeight / 2), 3);
-        // Add some detail lines for decoration
-        do Screen.drawLine(x + 5, y + 15, x + doorWidth - 5, y + 15);
-        do Screen.drawLine(x + 5, y + 30, x + doorWidth - 5, y + 30);
+        do Screen.setColor(true);
+        
+        // Door panels with 3D effect
+        do Screen.drawRectangle(x + 10, y + 20, x + doorWidth - 10, y + 50);
+        do Screen.drawRectangle(x + 10, y + 60, x + doorWidth - 10, y + 90);
+        do Screen.drawRectangle(x + 10, y + 100, x + doorWidth - 10, y + 130);
+        
+        // Door handle with metallic effect
+        do Screen.drawCircle(x + doorWidth - 20, y + (doorHeight / 2), 8);
+        do Screen.setColor(false);
+        do Screen.drawCircle(x + doorWidth - 20, y + (doorHeight / 2), 6);
+        do Screen.drawCircle(x + doorWidth - 20, y + (doorHeight / 2), 3);
+        do Screen.setColor(true);
         return;
     }
 
     method void drawDoors() {
         var int baseX, baseY, i;
-        let baseY = 100;
+        let baseY = 50;
         let i = 0;
 
+        do drawTitle();
+        do drawStats();
+
         while (i < 3) {
-            let baseX = 100 + (i * (doorWidth + 20));
+            let baseX = 50 + (i * (doorWidth + 40));
             do drawDoor(baseX, baseY);
-            do Output.moveCursor(20, 10 + (i * 15));
+            // Door numbers below each door
+            do Output.moveCursor(20, 5 + (i * 15));
+            do Output.printString("Door ");
             do Output.printInt(i + 1);
             let i = i + 1;
         }
         return;
     }
 
-
     method void showCar(int position) {
         var int x, y;
-        let x = 100 + (position * (doorWidth + 20));
-        let y = 120; // Position where the door is
-        do Output.moveCursor(y / 8, x / 8);
-        do Output.printString("CAR");
+        let x = 50 + (position * (doorWidth + 40));
+        let y = 90;
+
+        // First clear the area behind the door
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 10, y, x + doorWidth - 10, y + doorHeight - 10);
+        do Screen.setColor(true);
+
+        // Enhanced car drawing with better proportions
+        // Main body
+        do Screen.drawRectangle(x + 25, y + 45, x + doorWidth - 25, y + 75);
+        
+        // Roof with curved top
+        do Screen.drawLine(x + 35, y + 45, x + 45, y + 30);  // Front slope
+        do Screen.drawLine(x + doorWidth - 35, y + 45, x + doorWidth - 45, y + 30);  // Back slope
+        do Screen.drawLine(x + 45, y + 30, x + doorWidth - 45, y + 30);  // Top
+        
+        // Hood and trunk
+        do Screen.drawLine(x + 25, y + 45, x + 35, y + 45);  // Front hood
+        do Screen.drawLine(x + doorWidth - 35, y + 45, x + doorWidth - 25, y + 45);  // Back trunk
+        
+        // Windows (more detailed)
+        do Screen.drawRectangle(x + 42, y + 33, x + 55, y + 45);  // Front window
+        do Screen.drawRectangle(x + doorWidth - 55, y + 33, x + doorWidth - 42, y + 45);  // Back window
+        
+        // Wheels with spokes for more detail
+        // Front wheel
+        do Screen.drawCircle(x + 40, y + 75, 12);  // Outer rim
+        do Screen.setColor(false);
+        do Screen.drawCircle(x + 40, y + 75, 8);   // Inner rim
+        do Screen.setColor(true);
+        do Screen.drawCircle(x + 40, y + 75, 3);   // Hub
+        // Spokes
+        do Screen.drawLine(x + 40, y + 67, x + 40, y + 83);  // Vertical spoke
+        do Screen.drawLine(x + 32, y + 75, x + 48, y + 75);  // Horizontal spoke
+        
+        // Back wheel
+        do Screen.drawCircle(x + doorWidth - 40, y + 75, 12);  // Outer rim
+        do Screen.setColor(false);
+        do Screen.drawCircle(x + doorWidth - 40, y + 75, 8);   // Inner rim
+        do Screen.setColor(true);
+        do Screen.drawCircle(x + doorWidth - 40, y + 75, 3);   // Hub
+        // Spokes
+        do Screen.drawLine(x + doorWidth - 40, y + 67, x + doorWidth - 40, y + 83);  // Vertical spoke
+        do Screen.drawLine(x + doorWidth - 48, y + 75, x + doorWidth - 32, y + 75);  // Horizontal spoke
+        
+        // Headlights and taillights
+        do Screen.drawCircle(x + 28, y + 50, 4);  // Headlight
+        do Screen.drawRectangle(x + doorWidth - 32, y + 48, x + doorWidth - 28, y + 52);  // Taillight
+        
+        // Door line detail
+        do Screen.drawLine(x + 60, y + 45, x + 60, y + 75);  // Door line
+        
+        // Bumpers
+        do Screen.drawLine(x + 25, y + 65, x + 25, y + 75);  // Front bumper
+        do Screen.drawLine(x + doorWidth - 25, y + 65, x + doorWidth - 25, y + 75);  // Back bumper
+        
         return;
     }
 
     method void showGoat(int position) {
         var int x, y;
-        let x = 100 + (position * (doorWidth + 20));
-        let y = 120; // Position where the door is
-        do Output.moveCursor(y / 8, x / 8);
-        do Output.printString("GOAT");
+        let x = 50 + (position * (doorWidth + 40));
+        let y = 90;
+
+        // First clear the area behind the door
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 10, y, x + doorWidth - 10, y + doorHeight - 10);
+        do Screen.setColor(true);
+
+        // Enhanced goat drawing
+        // Body - made larger
+        do Screen.drawRectangle(x + 30, y + 40, x + 80, y + 60);
+        // Neck - thicker
+        do Screen.drawRectangle(x + 65, y + 25, x + 75, y + 40);
+        // Head - larger
+        do Screen.drawCircle(x + 70, y + 20, 10);
+        // Horns - more prominent
+        do Screen.drawLine(x + 65, y + 15, x + 55, y + 5);
+        do Screen.drawLine(x + 75, y + 15, x + 85, y + 5);
+        // Legs - thicker
+        do Screen.drawRectangle(x + 35, y + 60, x + 45, y + 85);
+        do Screen.drawRectangle(x + 65, y + 60, x + 75, y + 85);
+        // Face details
+        do Screen.setColor(false);
+        do Screen.drawCircle(x + 73, y + 18, 3);  // Eye - larger
+        do Screen.setColor(true);
+        do Screen.drawLine(x + 65, y + 22, x + 75, y + 22);  // Mouth
         return;
     }
 
@@ -87,6 +218,13 @@ class MontyHall {
         // Draw initial state
         do Screen.clearScreen();
         do drawDoors();
+
+        // Show brief game explanation
+        do drawInputArea();
+        do Output.moveCursor(21, 5);
+        do Output.printString("Behind these doors: 2 goats and 1 car!");
+        do Sys.wait(2000);
+        do drawInputArea();
         return;
     }
 
@@ -120,7 +258,7 @@ class MontyHall {
 
     method int getRandom() {
         var int randomNumber;
-        do Random.setSeed(Random.randRange(25)); 
+        do Random.setSeed(Random.randRange(25));
         let randomNumber = Random.randRange(2);
         return randomNumber;
     }
@@ -133,21 +271,277 @@ class MontyHall {
 
     method void animateDoorOpen(int position) {
         var int x, y, i, width;
-        let x = 100 + (position * (doorWidth + 20));
-        let y = 100;
+        let x = 50 + (position * (doorWidth + 40));  // Match new door spacing
+        let y = 50;  // Match baseY from drawDoors
         let width = 0;
 
         while (width < doorWidth) {
-            do Screen.setColor(false);  // erase
-            do Screen.drawRectangle(x + width, y, x + width + 1, y + doorHeight);
-            let width = width + 2;
-            do Sys.wait(50);
+            do Screen.setColor(false);
+            do Screen.drawRectangle(x + width, y, x + width + 2, y + doorHeight);
+            let width = width + 3;
+            do Sys.wait(20);
         }
         return;
     }
 
-    method void addWinnings() {
-        let money = money + 50;
+    method void drawInputArea() {
+        // Draw input box at the bottom
+        do Screen.drawRectangle(10, 220, 502, 250);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(12, 222, 500, 248);
+        do Screen.setColor(true);
+        return;
+    }
+
+    method int readIntInput(String prompt) {
+        var int value;
+        
+        // Clear input area and show prompt
+        do drawInputArea();
+        do Output.moveCursor(21, 5);
+        do Output.printString(prompt);
+        let value = Keyboard.readInt(1);
+        return value;
+    }
+
+    method void showProbabilityExplanation() {
+        do Screen.clearScreen();
+        do Output.moveCursor(2, 5);
+        do Output.printString("The Monty Hall Problem - Probability Explanation");
+        
+        do Output.moveCursor(5, 2);
+        do Output.printString("Initial Choice:");
+        do Output.moveCursor(6, 4);
+        do Output.printString("- You have a 1/3 chance of picking the car");
+        do Output.moveCursor(7, 4);
+        do Output.printString("- And a 2/3 chance of picking a goat");
+        
+        do Output.moveCursor(9, 2);
+        do Output.printString("When Switching:");
+        do Output.moveCursor(10, 4);
+        do Output.printString("- If you picked the car (1/3), switching loses");
+        do Output.moveCursor(11, 4);
+        do Output.printString("- If you picked a goat (2/3), switching wins!");
+        do Output.moveCursor(12, 4);
+        do Output.printString("- Therefore, switching wins 2/3 of the time");
+
+        do Output.moveCursor(14, 2);
+        do Output.printString("Your Statistics:");
+        do Output.moveCursor(15, 4);
+        do Output.printString("Switching: ");
+        if (switchAttempts > 0) {
+            do Output.printInt((switchWins * 100) / switchAttempts);
+            do Output.printString("% wins (");
+            do Output.printInt(switchWins);
+            do Output.printString("/");
+            do Output.printInt(switchAttempts);
+            do Output.printString(")");
+        } else {
+            do Output.printString("No attempts yet");
+        }
+
+        do Output.moveCursor(16, 4);
+        do Output.printString("Staying: ");
+        if (stayAttempts > 0) {
+            do Output.printInt((stayWins * 100) / stayAttempts);
+            do Output.printString("% wins (");
+            do Output.printInt(stayWins);
+            do Output.printString("/");
+            do Output.printInt(stayAttempts);
+            do Output.printString(")");
+        } else {
+            do Output.printString("No attempts yet");
+        }
+
+        do Output.moveCursor(20, 5);
+        do Output.printString("Press any key to continue...");
+        do Keyboard.readChar();
+        return;
+    }
+
+    method void showResult(boolean won, boolean didSwitch) {
+        do drawInputArea();
+        
+        do Output.moveCursor(21, 20);
+        if (won) {
+            do Output.printString("Congratulations! You Won!");
+            let gamesWon = gamesWon + 1;
+            if (didSwitch) {
+                let switchWins = switchWins + 1;
+            } else {
+                let stayWins = stayWins + 1;
+            }
+        } else {
+            do Output.printString("Sorry! Better luck next time!");
+        }
+        let gamesPlayed = gamesPlayed + 1;
+        if (didSwitch) {
+            let switchAttempts = switchAttempts + 1;
+        } else {
+            let stayAttempts = stayAttempts + 1;
+        }
+        do Sys.wait(1000);
+        return;
+    }
+
+    method int readSingleKey(String prompt) {
+        var char key;
+        
+        // Show prompt in input area
+        do drawInputArea();
+        do Output.moveCursor(21, 5);
+        do Output.printString(prompt);
+        
+        // Wait for valid key press
+        let key = 0;
+        while (key = 0) {
+            let key = Keyboard.keyPressed();
+            
+            // For door selection (1-3)
+            if (prompt.charAt(0) = 83) {  // If prompt starts with 'S' (Select)
+                if ((key = 49) | (key = 50) | (key = 51)) {  // 1, 2, or 3
+                    return (key - 48);  // Convert ASCII to number
+                }
+            }
+            // For switch choice (0-1)
+            if (prompt.charAt(0) = 87) {  // If prompt starts with 'W' (Would)
+                if ((key = 48) | (key = 49)) {  // 0 or 1
+                    return (key - 48);  // Convert ASCII to number
+                }
+            }
+            let key = 0;  // Reset for next iteration if invalid key
+        }
+        return 0;
+    }
+
+    method void playRound() {
+        var int choice, switchChoice, finalChoice;
+        var boolean result;
+        
+        // Get initial door choice
+        let choice = readSingleKey("Select a door (1-3): ");
+        let choice = choice - 1;
+        
+        if ((choice < 0) | (choice > 2)) {
+            do drawInputArea();
+            do Output.moveCursor(21, 5);
+            do Output.printString("Invalid choice! Game cancelled.");
+            do Sys.wait(1000);
+            return;
+        }
+        
+        let playerChoice = choice;
+        let revealedDoor = revealGoatDoor(playerChoice);
+        
+        // Show door opening animation
+        do drawInputArea();
+        do Output.moveCursor(21, 5);
+        do Output.printString("Opening door ");
+        do Output.printInt(revealedDoor + 1);
+        do Output.printString("...");
+        
+        do animateDoorOpen(revealedDoor);
+        do showGoat(revealedDoor);
+        
+        // Show goat reveal message
+        do drawInputArea();
+        do Output.moveCursor(21, 5);
+        do Output.printString("Door ");
+        do Output.printInt(revealedDoor + 1);
+        do Output.printString(" has a goat!");
+        do Sys.wait(1000);
+        
+        // Get switch choice
+        let switchChoice = readSingleKey("Would you like to switch doors? (1=yes, 0=no): ");
+        
+        // Show decision message
+        do drawInputArea();
+        
+        if (switchChoice = 1) {
+            let finalChoice = getUnrevealedDoor(playerChoice, revealedDoor);
+            do Output.moveCursor(21, 5);
+            do Output.printString("I'll change the doors and thanks for the extra 33%");
+        } else {
+            let finalChoice = playerChoice;
+            do Output.moveCursor(21, 5);
+            do Output.printString("We can see you didn't take probability with Max Mahlin");
+        }
+        
+        do Sys.wait(2000);
+        
+        // Open final door and show result
+        do animateDoorOpen(finalChoice);
+        let result = makeGuess(finalChoice);
+        
+        if (result) {
+            do showCar(finalChoice);
+        } else {
+            do showGoat(finalChoice);
+        }
+        
+        // If car wasn't found, show its location
+        if (~result) {
+            do animateDoorOpen(carPosition);
+            do showCar(carPosition);
+        }
+        
+        // Keep revealed goat visible
+        do showGoat(revealedDoor);
+        
+        do showResult(result, switchChoice = 1);
+        do Sys.wait(2000);
+        return;
+    }
+
+    method void run() {
+        var char key;
+        var boolean exit;
+        
+        let exit = false;
+        
+        while (~exit) {
+            do initGame();
+            do playRound();
+            
+            do drawInputArea();
+            do Output.moveCursor(21, 5);
+            do Output.printString("Press ENTER to play again, Q to quit");
+            
+            let key = Keyboard.readChar();
+            
+            if ((key = 81) | (key = 113)) {  // 'Q' or 'q' key
+                let exit = true;
+                // Break out of the loop and show final stats
+                do Screen.clearScreen();
+                do showProbabilityExplanation();
+                
+                // Show final stats
+                do Screen.clearScreen();
+                do Output.moveCursor(10, 15);
+                do Output.printString("Thanks for playing!");
+                do Output.moveCursor(12, 15);
+                do Output.printString("Final Statistics:");
+                do Output.moveCursor(14, 15);
+                do Output.printString("Overall Win Rate: ");
+                if (gamesPlayed > 0) {
+                    do Output.printInt((gamesWon * 100) / gamesPlayed);
+                    do Output.printString("%");
+                }
+                do Output.moveCursor(16, 15);
+                do Output.printString("Switching Success: ");
+                if (switchAttempts > 0) {
+                    do Output.printInt((switchWins * 100) / switchAttempts);
+                    do Output.printString("%");
+                }
+                do Output.moveCursor(18, 15);
+                do Output.printString("Staying Success: ");
+                if (stayAttempts > 0) {
+                    do Output.printInt((stayWins * 100) / stayAttempts);
+                    do Output.printString("%");
+                }
+                return;
+            }
+        }
         return;
     }
 }
